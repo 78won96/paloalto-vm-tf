@@ -271,8 +271,9 @@ resource "aws_instance" "az2_paloalto" {
 
 ## Cloud9 에 폴더 생성 후 해당 파일을 업로드
 ## cd /folder 에서 terraform init
-## tp plan <filename>.tf 로 해당 tf file에 대한 적합성 검사
-## tf apply -auto-approved <filename>.tf 로 Deploy
+## terraform plan 로 해당 tf file에 대한 적합성 검사
+## terraform apply -auto-approved 로 Deploy
+## terraform destroy 로 생성된 resource 삭제
 
 }
 
