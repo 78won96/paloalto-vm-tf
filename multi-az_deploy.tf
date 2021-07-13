@@ -260,3 +260,10 @@ resource "aws_instance" "az2_paloalto" {
   }
 
 }
+
+## Cloud9 에 폴더 생성 후 해당 파일을 업로드
+## tp plan <filename>.tf 로 해당 tf file에 대한 적합성 검사
+## tf apply -auto-approved <filename>.tf 로 Deploy
+
+}
+
