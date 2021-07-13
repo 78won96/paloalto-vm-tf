@@ -8,9 +8,9 @@ variable "vpc_id"{
 }
 
 ## az1 subnet variable
-variable "pa_az1_mgt_subnet_id"{
-  default = "subnet-017cd50a3e10f7fb7"
-}
+## variable "pa_az1_mgt_subnet_id"{
+##  default = "subnet-017cd50a3e10f7fb7"
+## }
 
 variable "pa_az1_public_subnet_id"{
   default = "subnet-0ca166ef748fc9cd0"
@@ -21,9 +21,9 @@ variable "pa_az1_private_subnet_id"{
 }
 
 ## az2 subnet variable
-variable "pa_az2_mgt_subnet_id"{
-  default = "subnet-0e53da0e3ed45a868"
-}
+## variable "pa_az2_mgt_subnet_id"{
+##  default = "subnet-0e53da0e3ed45a868"
+## }
 
 variable "pa_az2_public_subnet_id"{
   default = "subnet-034eac93d5765daea"
@@ -65,7 +65,7 @@ resource "aws_security_group" "allow-mgt-sg" {
   }
 
   tags = {
-    Name = "allow-pa-sg"
+    Name = "allow-mgt-pa-sg"
   }
 }
 
@@ -90,7 +90,7 @@ resource "aws_security_group" "allow-pa-traffic-sg" {
   }
 
   tags = {
-    Name = "allow-pa-sg"
+    Name = "allow-traffic-pa-sg"
   }
 }
 
