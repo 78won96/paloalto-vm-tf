@@ -1,13 +1,13 @@
 provider "aws" {
-  region = "eu-west-3"
+  region = "eu-west-3" ## region assinged
 }
 
 variable "vpc_id"{
-  default = "vpc-0962306e2fdfba6f6"
+  default = "vpc-0962306e2fdfba6f6" ## vpc-id
 
 }
 
-//az1 subnet variable
+## az1 subnet variable
 variable "pa_az1_mgt_subnet_id"{
   default = "subnet-017cd50a3e10f7fb7"
 }
@@ -20,7 +20,7 @@ variable "pa_az1_private_subnet_id"{
   default = "subnet-039b22202c5845b4b"
 }
 
-//az2 subnet variable
+## az2 subnet variable
 variable "pa_az2_mgt_subnet_id"{
   default = "subnet-0e53da0e3ed45a868"
 }
@@ -35,7 +35,7 @@ variable "pa_az2_private_subnet_id"{
 
 
 
-//security group
+## security group
 resource "aws_security_group" "allow-mgt-sg" {
   name        = "allow-pa-mgt-sg"
   description = "Allow pa-sg inbound traffic"
@@ -94,7 +94,7 @@ resource "aws_security_group" "allow-pa-traffic-sg" {
   }
 }
 
-
+## EIP mapping
 resource "aws_eip" "pa1-mgt" {
   network_interface = aws_network_interface.pa-az1-mgt.id
 
@@ -128,7 +128,7 @@ resource "aws_eip" "pa2-untrust" {
   }
 }
 
-//network interface
+## network interface
 resource "aws_network_interface" "pa-az1-mgt" {
   subnet_id       = var.pa_az1_mgt_subnet_id
   security_groups = [aws_security_group.allow-mgt-sg.id]
@@ -194,13 +194,13 @@ resource "aws_network_interface" "pa-az2-trust" {
 
 
 
-//instance
+## instance
 resource "aws_instance" "az1_paloalto" {
-  ami = "ami-01f2432190130a2c6"
-  instance_type = "c5.xlarge"
-  key_name = "aws_paris_key"
-  availability_zone = "eu-west-3a"
-  user_data = "mgmt-interface-swap=enable"
+  ami = "ami-01f2432190130a2c6" ## Pan-OS intall version ami-id
+  instance_type = "c5.xlarge" ## install instace type
+  key_name = "aws_paris_key" ## key pair
+  availability_zone = "eu-west-3a" ## AZ
+  user_data = "mgmt-interface-swap=enable" ## swap interface
 
   network_interface {
     network_interface_id = aws_network_interface.pa-az1-mgt.id
