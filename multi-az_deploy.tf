@@ -65,7 +65,7 @@ resource "aws_security_group" "allow-mgt-sg" {
   }
 
   tags = {
-    Name = "allow-pa-sg"
+    Name = "allow-pa-mgt-sg"
   }
 }
 
@@ -90,7 +90,7 @@ resource "aws_security_group" "allow-pa-traffic-sg" {
   }
 
   tags = {
-    Name = "allow-pa-sg"
+    Name = "allow-pa-traffic-sg"
   }
 }
 
@@ -267,6 +267,7 @@ resource "aws_instance" "az2_paloalto" {
   }
 
 }
+
 
 ## Cloud9 에 폴더 생성 후 해당 파일을 업로드
 ## cd /folder 에서 terraform init
