@@ -1,0 +1,88 @@
+provider "aws" {
+  region = "ap-northeast-2"
+}
+variable "vpc_id"{
+  default = "vpc-8fefe1e7"
+}
+variable "subnet_id"{
+  default = ["subnet-0beb87a0f4b18ea2e", "subnet-02c93f6b5da0a8b54"]              //public subnet id 
+}
+variable "security_group_id" {
+   default = ["sg-081b31ea55282e611"]
+}
+variable "alb-name" {
+   default = ["alb-new-01,alb-new-02,alb-new-03"]
+}
+variable "alb-listener-80" {
+   default = ["alb-new-listener-01,alb-new-listener-02,alb-new-listener-03"]
+}
+variable "alb-target" {
+   default = ["alb-new-listener-01,alb-new-listener-02,alb-new-listener-03"]
+}
+variable "alb-target-port" {
+   default = ["9091,9092,9093"]
+}
+
+resource "aws_lb" "alb-name" {
+  name               = var.alb-name[0]
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = var.security_group_id                      //앞의 security gp 리소스 참조 
+  subnets            = var.subnet_id
+  enable_deletion_protection = false   //true 로 할경우 destroy 가 안됨
+}
+
+resource "aws_lb_listener" "alb-new-listener-80" {
+  load_balancer_arn = aws_lb.alb-new.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.alb-new-target.arn                             //lb target gp name 설정
+  }
+}
+resource "aws_lb_listener" "alb-new-listener-443" {
+  load_balancer_arn = aws_lb.alb-new.arn
+  port              = "443"
+  protocol          = "HTTPS"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.alb-new-target.arn                               //lb target gp name 설정
+  }
+}
+resource "aws_lb_target_group" "alb-new-target" {
+  name     = var.alb-new-target
+  port     = var.alb-target-port
+  protocol = "HTTP"
+//  target_type = "instance"
+  load_balancing_algorithm_type = "round_robin"
+  vpc_id   = var.vpc_id
+  
+  health_check {
+        enabled             = true
+        healthy_threshold   = 5
+        interval            = 30
+        matcher             = "200,302"
+        path                = "/"
+        port                = "traffic-port"
+        protocol            = "HTTP"
+        timeout             = 5
+        unhealthy_threshold = 2
+    }
+}
+
+resource "aws_lb_target_group_attachment" "paloalto" {
+  count = length(data.aws_instances.test_alb.ids)
+  target_group_arn = aws_lb_target_group.alb-new-target.arn
+  target_id        = element(data.aws_instances.test_alb.ids, count.index)
+  port             = var.alb-target-port
+
+}
+
+data "aws_instances" "test_alb" {                                                     // instance resource의 Data를 가져옴
+  instance_tags = {
+    Name = "Paloalto_*"
+  }
+}
