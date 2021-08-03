@@ -120,4 +120,9 @@ data "aws_instances" "test_alb-02" {                                            
   }
 }
 
+// 코드 생성 후 terraform plan 으로 add / change / destroy 되는 부분을 확인
+// destroy 가 없는 경우 terrafor apply 실행 
+// 이때 target 에 instance 가 initial 됨.
+// error 가 발생할 경우 아래 명령어로 error 가 발생한 alb-listener 를 import 후 terraform plan 을 하여 No change 가 발생하도록 수정
+
 //$ terraform import aws_lb_listener.test_alb-02 arn:aws:elasticloadbalancing:ap-northeast-2:867154655416:listener/app/alb-test-02/e3c2ac15b4970d3e/e3ea1ad5e5241e76
