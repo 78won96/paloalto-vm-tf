@@ -11,11 +11,11 @@ variable "subnet_id"{
 }
 
  variable "security_group_id" {
-   default = ["sg-081b31ea55282e611"]
+   default = ["sg-081b31ea55282e611"]    // ALB에 붙는 SG id
 }
 
 resource "aws_lb" "test_alb" {
-  name               = "alb-test-01"
+  name               = "alb-test-01"     // alb 이름
   internal           = false
   load_balancer_type = "application"
   security_groups    = var.security_group_id                      //앞의 security gp 리소스 참조 
@@ -23,7 +23,7 @@ resource "aws_lb" "test_alb" {
   enable_deletion_protection = false   //true 로 할경우 destroy 가 안됨
 }
 resource "aws_lb" "test_alb-02" {
-  name               = "alb-test-02"
+  name               = "alb-test-02"    // alb 이름
   internal           = false
   load_balancer_type = "application"
   security_groups    = var.security_group_id                      //앞의 security gp 리소스 참조 
@@ -55,7 +55,7 @@ resource "aws_lb_listener" "test_alb-02" {
   }
 }
 resource "aws_lb_target_group" "test_alb" {
-  name     = "tg-test-01"
+  name     = "tg-test-01"        // target group 이름
   port     = 8081
   protocol = "HTTP"
 //  target_type = "instance"
@@ -75,7 +75,7 @@ resource "aws_lb_target_group" "test_alb" {
     }
 }
 resource "aws_lb_target_group" "test_alb-02" {
-  name     = "tg-test-02"
+  name     = "tg-test-02"    // target group 이름
   port     = 8082
   protocol = "HTTP"
 //  target_type = "instance"
