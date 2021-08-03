@@ -32,14 +32,14 @@ resource "aws_lb" "test_alb-02" {
 }
 resource "aws_lb_listener" "test_alb" {
  
-  load_balancer_arn = aws_lb.test_alb.arn
+  load_balancer_arn = aws_lb.test_alb-01.arn
   port              = "80"
   protocol          = "HTTP"
  
   
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.test_alb.arn                               //lb target gp name 설정
+    target_group_arn = aws_lb_target_group.test_alb-01.arn                               //lb target gp name 설정
   }
 }
 resource "aws_lb_listener" "test_alb-02" {
@@ -54,7 +54,7 @@ resource "aws_lb_listener" "test_alb-02" {
     target_group_arn = aws_lb_target_group.test_alb-02.arn                               //lb target gp name 설정
   }
 }
-resource "aws_lb_target_group" "test_alb" {
+resource "aws_lb_target_group" "test_alb-01" {
   name     = "tg-test-01"        // target group 이름
   port     = 8081
   protocol = "HTTP"
@@ -95,17 +95,17 @@ resource "aws_lb_target_group" "test_alb-02" {
     }
 }
 
-resource "aws_lb_target_group_attachment" "paloalto" {
+resource "aws_lb_target_group_attachment" "paloalto-01" {
   count = length(data.aws_instances.test_alb.ids)
-  target_group_arn = aws_lb_target_group.test_alb.arn
+  target_group_arn = aws_lb_target_group.test_alb-01.arn
   target_id        = element(data.aws_instances.test_alb.ids, count.index)
   port             = 8081
 
 }
 resource "aws_lb_target_group_attachment" "paloalto-02" {
-  count = length(data.aws_instances.test_alb-02.ids)
+  count = length(data.aws_instances.test_alb.ids)
   target_group_arn = aws_lb_target_group.test_alb-02.arn
-  target_id        = element(data.aws_instances.test_alb-02.ids, count.index)
+  target_id        = element(data.aws_instances.test_alb.ids, count.index)
   port             = 8082
 
 }
@@ -114,11 +114,7 @@ data "aws_instances" "test_alb" {                                               
     Name = "Paloalto_*"
   }
 }
-data "aws_instances" "test_alb-02" {                                                     // instance resource의 Data를 가져옴
-  instance_tags = {
-    Name = "Paloalto_*"
-  }
-}
+
 
 // 코드 생성 후 terraform plan 으로 add / change / destroy 되는 부분을 확인
 // destroy 가 없는 경우 terrafor apply 실행 
