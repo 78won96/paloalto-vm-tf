@@ -1,0 +1,212 @@
+provider "aws" {
+  region = "ap-northeast-2"
+}
+
+variable "vpc_id"{
+  default = "vpc-8fefe1e7"
+
+}
+
+//az1 subnet variable
+variable "pa_az1_mgt_subnet_id"{
+  default = "subnet-0ff1c61be08e4c30a"
+}
+
+variable "pa_az1_GWLB_subnet_id"{
+  default = "subnet-0beb87a0f4b18ea2e"
+}
+
+//az2 subnet variable
+variable "pa_az2_mgt_subnet_id"{
+  default = "subnet-01edc3e432e40c6e9"
+}
+
+variable "pa_az2_GWLB_subnet_id"{
+  default = "subnet-02c93f6b5da0a8b54"
+}
+
+//security group
+resource "aws_security_group" "allow-mgt-sg-iac" {
+  name        = "allow-pa-mgt-sg-iac"
+  description = "Allow pa-sg inbound traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description      = "allow-443"
+    from_port        = 0
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description      = "allow-22"
+    from_port        = 0
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow-pa-mgt-sg"
+  }
+}
+
+resource "aws_security_group" "allow-pa-traffic-sg-iac" {
+  name        = "allow-pa-traffic-sg-iac"
+  description = "Allow pa-sg all traffic"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description      = "allow-pa-traffic-sg"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow-pa-traffic-sg"
+  }
+}
+
+
+resource "aws_eip" "pa1-mgt" {
+  network_interface = aws_network_interface.pa-az1-mgt.id
+
+  tags = {
+    Name = "PA1-MGT-EIP"
+  }
+}
+
+resource "aws_eip" "pa2-mgt" {
+  network_interface = aws_network_interface.pa-az2-mgt.id
+
+  tags = {
+    Name = "PA2-MGT-EIP"
+  }
+}
+
+
+//network interface
+resource "aws_network_interface" "pa-az1-mgt" {
+  subnet_id       = var.pa_az1_mgt_subnet_id
+  security_groups = [aws_security_group.allow-mgt-sg-iac.id]
+  description = "PA-AZ1-MGT"
+
+  tags = {
+    Name = "PA-AZ1-MGT"
+  }
+}
+
+resource "aws_network_interface" "pa-az1-GWLB" {
+  subnet_id       = var.pa_az1_GWLB_subnet_id
+  security_groups = [aws_security_group.allow-pa-traffic-sg-iac.id]
+  source_dest_check = false
+  description = "PA-AZ1-GWLB"
+
+  tags = {
+    Name = "PA-AZ1-Untrust"
+  }
+}
+
+resource "aws_network_interface" "pa-az2-mgt" {
+  subnet_id       = var.pa_az2_mgt_subnet_id
+  security_groups = [aws_security_group.allow-mgt-sg-iac.id]
+  description = "PA-AZ2-MGT"
+
+  tags = {
+    Name = "PA-AZ2-MGT"
+  }
+}
+
+resource "aws_network_interface" "pa-az2-GWLB" {
+  subnet_id       = var.pa_az2_GWLB_subnet_id
+  security_groups = [aws_security_group.allow-pa-traffic-sg-iac.id]
+  source_dest_check = false
+  description = "PA-AZ2-GWLB"
+
+  tags = {
+    Name = "PA-AZ2-GWLB"
+  }
+}
+
+
+//instance
+resource "aws_instance" "az1_paloalto" {
+  ami = "ami-0c5d7a4f45a83205c"
+  instance_type = "m5.xlarge"
+  key_name = "JW_key"
+  availability_zone = "ap-northeast-2a"
+  user_data = "mgmt-interface-swap=enable"
+
+  network_interface {
+    network_interface_id = aws_network_interface.pa-az1-mgt.id
+    device_index         = 1
+  }
+
+  network_interface {
+    network_interface_id = aws_network_interface.pa-az1-GWLB.id
+    device_index         = 0
+  }
+
+  root_block_device {
+    volume_size = 60
+
+  }
+
+  tags = {
+    Name = "Paloalto_AZ1"
+  }
+}
+
+resource "aws_instance" "az2_paloalto" {
+  ami = "ami-0c5d7a4f45a83205c"
+  instance_type = "m5.xlarge"
+  key_name = "JW_key"
+  availability_zone = "ap-northeast-2c"
+  user_data = "mgmt-interface-swap=enable"
+
+    network_interface {
+    network_interface_id = aws_network_interface.pa-az2-mgt.id
+    device_index         = 1
+  }
+
+  network_interface {
+    network_interface_id = aws_network_interface.pa-az2-GWLB.id
+    device_index         = 0
+  }
+
+  root_block_device {
+    volume_size = 60
+
+  }
+
+  tags = {
+    Name = "Paloalto_AZ2"
+  }
+
+}
+## Cloud9 에 폴더 생성 후 해당 파일을 업로드
+## cd /folder 에서 terraform init
+## terraform plan 로 해당 tf file에 대한 적합성 검사
+## terraform apply -auto-approve 로 Deploy
+## terraform destroy 로 생성된 resource 삭제
+
+## PAN-OS AMI ID 조회 방법
+## aws ec2 describe-images --filters "Name=product-code,Values=6njl1pau431dv1qxipg63mvah" "Name=name,Values=PA-VM-AWS*10.1*"  --region us-west-1 --output json
+## product-code 는 BYOL 임
